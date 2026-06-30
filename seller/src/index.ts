@@ -262,7 +262,7 @@ const routes = Object.fromEntries(
     `GET ${e.path}`,
     {
       accepts: [{ scheme: 'exact' as const, price: wcspr(e.priceWcspr), network: NETWORK, payTo: PAYEE_ADDRESS }],
-      description: `[Wisp API — ${e.title}] ${e.priceWcspr} WCSPR per call. ${e.description} Settled via x402 on ${NETWORK_LABEL}.`,
+      description: `[Wisp API — ${e.title}] ${e.priceWcspr} ${ASSET_SYMBOL} per call. ${e.description} Settled via x402 on ${NETWORK_LABEL}.`,
       mimeType: 'application/json',
     },
   ]),
@@ -286,7 +286,7 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok', service: 'wisp-api', version: '0.1.0', network: NETWORK, networkLabel: NETWORK_LABEL,
     payTo: PAYEE_ADDRESS, asset: { symbol: ASSET_SYMBOL, package: ASSET_PACKAGE, decimals: ASSET_DECIMALS },
-    facilitator: FACILITATOR_URL, protocol: 'x402 (pay-per-call over HTTP, settled in WCSPR on Casper)',
+    facilitator: FACILITATOR_URL, protocol: `x402 (pay-per-call over HTTP, settled in ${ASSET_SYMBOL} on Casper)`,
     paidEndpoints: CATALOG.map((e) => `GET ${e.path}`),
   });
 });
