@@ -66,6 +66,8 @@ flowchart TD
 | **Hub** | [`backend/`](backend/) | treasury ledger, on-ramp credit, custodial pay, cross-chain bazaar |
 | **Web** | [`web/`](web/) | CSPR.click dapp — connect, buy CSPR, browse + pay the bazaar |
 
+> **Install in Claude Desktop:** download **wisp-wallet.mcpb** from the [latest release](https://github.com/ogsamrat/casper-agentic-wallet/releases/latest), then double-click it (or Settings → Extensions → install from file).
+
 ## Two rails, one wallet
 
 - **Casper** → **WISP**, a CEP‑18 token with EIP‑712 `transfer_with_authorization`

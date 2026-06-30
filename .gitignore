@@ -12,7 +12,6 @@ build/
 server/
 .mcpb-build/
 *.mcpb
-!releases/*.mcpb
 web/dist/
 
 # vercel
