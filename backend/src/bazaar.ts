@@ -13,6 +13,9 @@ export type Service = {
   description: string;
   source: string;
   registeredAt: string;
+  chain?: 'casper' | 'base';
+  fee?: string;    // marketplace fee, e.g. "5%"
+  total?: string;  // price including fee
 };
 
 export class Bazaar {
@@ -36,7 +39,47 @@ export class Bazaar {
         this.services.set(url, {
           id: url, name: e.path, url, method: e.method, price: e.price,
           asset: j.asset?.package ?? '', network: j.network ?? '', category: e.category,
-          description: e.description, source: 'wisp-api', registeredAt: new Date().toISOString(),
+          description: e.description, source: 'wisp-api', chain: 'casper',
+          registeredAt: new Date().toISOString(),
+        });
+        n++;
+      }
+      return n;
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Pull the Coinbase x402 Bazaar (CDP discovery) and register Base USDC services,
+   * applying a marketplace fee. The agent can pay these via the wallet's EVM scheme.
+   */
+  async seedFromBaseBazaar(feePct: number, discoveryUrl: string, limit = 50): Promise<number> {
+    try {
+      const res = await fetch(`${discoveryUrl}?limit=${limit}`, {
+        headers: { accept: 'application/json' },
+        signal: AbortSignal.timeout(12_000),
+      });
+      if (!res.ok) return 0;
+      const j = (await res.json()) as { items?: any[]; resources?: any[] };
+      const items = j.items ?? j.resources ?? [];
+      let n = 0;
+      for (const r of items) {
+        const a = (r.accepts ?? [])[0];
+        if (!a || !String(a.network).startsWith('eip155')) continue;
+        const url: string | undefined = r.resource ?? r.url;
+        if (!url) continue;
+        const price = Number(a.amount) / 1e6; // USDC, 6 dp
+        const total = price * (1 + feePct / 100);
+        let host = url;
+        try { host = new URL(url).host; } catch { /* keep url */ }
+        this.services.set(url, {
+          id: url, name: host, url, method: 'GET',
+          price: `${price} USDC`, fee: `${feePct}%`, total: `${total.toFixed(6)} USDC`,
+          asset: a.asset, network: a.network, chain: 'base',
+          category: r.extensions?.bazaar?.category ?? 'base',
+          description: String(r.description ?? '').slice(0, 240),
+          source: 'base-bazaar', registeredAt: new Date().toISOString(),
         });
         n++;
       }
