@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { loadHubConfig } from './config.js';
-import { deriveTreasury, getTreasuryWispAtomic, atomicToDecimal, decimalToAtomic, type Treasury } from './casper.js';
+import { deriveTreasury, getTreasuryWispAtomic, getCsprMotes, atomicToDecimal, decimalToAtomic, type Treasury } from './casper.js';
+import { evmAddress, getUsdcAtomic } from './evm.js';
 import { signCustodialPayment, fetchAndPay, type PaymentRequired } from './x402.js';
 import { HubStore } from './store.js';
 import { Bazaar } from './bazaar.js';
@@ -51,6 +52,28 @@ app.get('/', async (c) => {
       'GET /admin/ops': 'Treasury / ledger dashboard (admin)',
     },
   });
+});
+
+// ── Agent balances (public, for the dapp) ─────────────────────────────────────
+app.get('/agent', async (c) => {
+  const out: Record<string, unknown> = {};
+  if (treasury) {
+    const [cspr, wisp] = await Promise.all([getCsprMotes(cfg, treasury), getTreasuryWispAtomic(cfg, treasury)]);
+    out.casper = {
+      address: treasury.accountAddress,
+      publicKey: treasury.publicKeyHex,
+      cspr: atomicToDecimal(cspr, 9),
+      token: { symbol: cfg.asset.symbol, balance: atomicToDecimal(wisp, cfg.asset.decimals) },
+    };
+  }
+  if (cfg.base) {
+    out.base = {
+      address: evmAddress(cfg.base),
+      network: cfg.base.network,
+      usdc: atomicToDecimal(await getUsdcAtomic(cfg.base), 6),
+    };
+  }
+  return c.json(out);
 });
 
 // ── Bazaar ──────────────────────────────────────────────────────────────────

@@ -45,6 +45,21 @@ export async function getTreasuryWispAtomic(cfg: HubConfig, treasury: Treasury):
   }
 }
 
+/** Treasury liquid CSPR balance in motes via CSPR.cloud. */
+export async function getCsprMotes(cfg: HubConfig, treasury: Treasury): Promise<string> {
+  try {
+    const res = await fetch(`${cfg.csprCloudRest}/accounts/${treasury.publicKeyHex}`, {
+      headers: { accept: 'application/json', ...(cfg.csprCloudKey ? { authorization: cfg.csprCloudKey } : {}) },
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!res.ok) return '0';
+    const j = (await res.json()) as { data?: { balance?: string } };
+    return j.data?.balance ?? '0';
+  } catch {
+    return '0';
+  }
+}
+
 export function atomicToDecimal(atomic: string, decimals: number): string {
   const neg = atomic.startsWith('-');
   const s = (neg ? atomic.slice(1) : atomic).padStart(decimals + 1, '0');
