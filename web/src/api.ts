@@ -9,6 +9,8 @@ export type Service = {
   description: string;
   network: string;
   chain?: 'casper' | 'base';
+  tier?: 'testnet' | 'mainnet';
+  payable?: boolean;
   fee?: string;
   total?: string;
   source?: string;
