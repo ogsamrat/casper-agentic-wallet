@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { loadHubConfig } from './config.js';
 import { deriveTreasury, getTreasuryWispAtomic, atomicToDecimal, decimalToAtomic, type Treasury } from './casper.js';
-import { signCustodialPayment, type PaymentRequired } from './x402.js';
+import { signCustodialPayment, fetchAndPay, type PaymentRequired } from './x402.js';
 import { HubStore } from './store.js';
 import { Bazaar } from './bazaar.js';
 import { isAdmin } from './auth.js';
@@ -138,6 +138,23 @@ app.post('/api/pay', async (c) => {
     const msg = e instanceof Error ? e.message : String(e);
     store.fail(correlationId, msg);
     return c.json({ error: `payment signing failed: ${msg}` }, 502);
+  }
+});
+
+// ── Pay & call: settle any x402 URL via the agent's multi-chain keys ───────────
+app.post('/call', async (c) => {
+  if (!treasury) return c.json({ error: 'hub treasury not configured' }, 503);
+  const body = await c.req.json().catch(() => null);
+  const url: string | undefined = body?.url;
+  if (!url || typeof url !== 'string') return c.json({ error: 'url is required' }, 400);
+  try {
+    const r = await fetchAndPay(treasury, url, { method: body?.method ?? 'GET' });
+    const txt = await r.response.text();
+    let resBody: unknown;
+    try { resBody = JSON.parse(txt); } catch { resBody = txt.slice(0, 4000); }
+    return c.json({ status: r.status, paid: r.paid, network: (r.accept as any)?.network, settlement: r.settlement, body: resBody });
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : String(e) }, 502);
   }
 });
 
