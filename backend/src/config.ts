@@ -19,6 +19,7 @@ export type HubConfig = {
   port: number;
   baseFeePct: number;
   cdpDiscoveryUrl: string;
+  base: { privateKey: string; network: string; rpcUrl: string; usdc: string } | null;
 };
 
 export function loadHubConfig(): HubConfig {
@@ -41,5 +42,13 @@ export function loadHubConfig(): HubConfig {
     port: Number(process.env.PORT ?? 4055),
     baseFeePct: Number(process.env.BASE_BAZAAR_FEE_PCT ?? 5),
     cdpDiscoveryUrl: process.env.CDP_DISCOVERY_URL ?? 'https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources',
+    base: process.env.BASE_PRIVATE_KEY
+      ? {
+          privateKey: process.env.BASE_PRIVATE_KEY,
+          network: process.env.BASE_NETWORK ?? 'eip155:84532',
+          rpcUrl: process.env.BASE_RPC_URL ?? 'https://sepolia.base.org',
+          usdc: process.env.BASE_USDC_CONTRACT ?? '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        }
+      : null,
   };
 }
