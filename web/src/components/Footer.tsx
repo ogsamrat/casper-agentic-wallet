@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="footer-in">
-        <div className="footer-brand"><span className="logo sm" /> Wisp</div>
+        <div className="footer-brand"><span className="dot" /> Wisp</div>
         <nav className="footer-links">
           <Link to="/bazaar">Bazaar</Link>
           <Link to="/wallet">Wallet</Link>
