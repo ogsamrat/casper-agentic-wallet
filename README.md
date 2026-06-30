@@ -21,6 +21,18 @@ Wisp gives an AI agent a real Casper wallet and the ability to autonomously sett
 | **Wisp Hub** | [`backend/`](backend/) | Treasury ledger + fiat on-ramp credit + service registry | `casper-backend.vercel.app` |
 | **Wisp Web** | [`web/`](web/) | CSPR.click dapp — connect, buy CSPR, fund the agent, browse the bazaar | `casperwallet.vercel.app` |
 
+## Live (Casper testnet)
+
+| Service | URL | Status |
+|---|---|---|
+| Wisp API (seller) | https://casper-api.vercel.app | live |
+| Wisp Hub (backend) | https://casper-backend-one.vercel.app | live |
+| WISP token | CEP-18 `65bedddde009284db1bd62614afc8bbeb405590ddec1669eca3db38b5e18810f` | deployed |
+| Facilitator | https://x402-facilitator.cspr.cloud | hosted (CSPR.cloud) |
+
+> `casper-backend.vercel.app` is held by another Vercel account (`.vercel.app` names are
+> globally unique), so the hub is served from `casper-backend-one.vercel.app`.
+
 ## How a payment works
 
 ```
