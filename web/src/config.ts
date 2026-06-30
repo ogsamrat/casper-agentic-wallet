@@ -9,4 +9,6 @@ export const config = {
   assetPackage: '65bedddde009284db1bd62614afc8bbeb405590ddec1669eca3db38b5e18810f',
   // The agent wallet's account-hash address (00-prefixed).
   agentAddress: import.meta.env.VITE_AGENT_ADDRESS || '00d196a8556f9194b95d3a712100844c33fbde489e04f2f4278f33b5eed3a1c264',
+  // Networks the agent wallet is funded on and can actually settle.
+  supportedNetworks: ['casper:casper-test', 'eip155:84532'],
 };
