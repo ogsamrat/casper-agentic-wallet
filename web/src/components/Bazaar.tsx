@@ -52,7 +52,7 @@ function ServiceCard({ s }: { s: Service }) {
   );
 }
 
-export function Bazaar({ services }: { services: Service[] }) {
+export function Bazaar({ services, loading }: { services: Service[]; loading?: boolean }) {
   const [query, setQuery] = useState('');
   const [chain, setChain] = useState<'all' | 'casper' | 'base'>('all');
 
@@ -61,9 +61,12 @@ export function Bazaar({ services }: { services: Service[] }) {
     .filter((s) => !query || JSON.stringify(s).toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <section className="bazaar">
+    <section className="bazaar" id="bazaar">
       <div className="bazaar-head">
-        <h2>Bazaar <span className="count">{filtered.length}</span></h2>
+        <div>
+          <h2>The bazaar <span className="count">{loading ? '…' : filtered.length}</span></h2>
+          <p className="sub">x402 services from Wisp and the Coinbase x402 Bazaar — pay any of them with one click.</p>
+        </div>
         <div className="filters">
           <div className="seg">
             {(['all', 'casper', 'base'] as const).map((c) => (
@@ -74,8 +77,14 @@ export function Bazaar({ services }: { services: Service[] }) {
         </div>
       </div>
       <div className="services">
-        {filtered.map((s) => <ServiceCard key={s.url} s={s} />)}
-        {filtered.length === 0 && <p className="empty">No services found.</p>}
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div className="service skeleton" key={i}>
+                <span className="sk sk-chip" /><span className="sk sk-h" /><span className="sk sk-p" /><span className="sk sk-p short" />
+              </div>
+            ))
+          : filtered.map((s) => <ServiceCard key={s.url} s={s} />)}
+        {!loading && filtered.length === 0 && <p className="empty">No services found.</p>}
       </div>
     </section>
   );
