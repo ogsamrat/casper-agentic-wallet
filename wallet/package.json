@@ -1,0 +1,40 @@
+{
+  "name": "wisp-wallet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wisp Wallet — an MCP server giving AI agents a Casper wallet to pay x402-gated APIs in WCSPR.",
+  "type": "module",
+  "bin": {
+    "wisp-wallet": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "paytest": "tsx src/_paytest.ts",
+    "build:mcpb": "bash scripts/build-mcpb.sh"
+  },
+  "dependencies": {
+    "@make-software/casper-x402": "1.0.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@scure/bip32": "^1.4.0",
+    "@x402/core": "2.15.0",
+    "@x402/fetch": "2.15.0",
+    "bip39": "^3.1.0",
+    "casper-js-sdk": "5.0.12",
+    "dotenv": "^16.4.7",
+    "zod": "^3.23.0"
+  },
+  "overrides": {
+    "@x402/core": "2.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
