@@ -18,18 +18,26 @@ Set-Content "$BUILD/server/index.js" -Value $idx -NoNewline -Encoding utf8
 Copy-Item "$ROOT/package.json" "$BUILD/server/package.json"
 Set-Location "$BUILD/server"
 & npm.cmd install --omit=dev --ignore-scripts --legacy-peer-deps
-Remove-Item "package.json","package-lock.json" -ErrorAction SilentlyContinue
+Remove-Item "package-lock.json" -ErrorAction SilentlyContinue
+# The bundled server is ESM — Node needs "type":"module" or it loads index.js as CommonJS.
+Set-Content "package.json" -Value '{"type":"module"}' -NoNewline -Encoding utf8
 
 # Prune to shrink the archive
 Remove-Item "node_modules/typescript" -Recurse -Force -ErrorAction SilentlyContinue
 Get-ChildItem -Path "node_modules" -Recurse -Include "*.map" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 Get-ChildItem -Path "node_modules" -Recurse -Directory -Include "__tests__","tests","docs","examples" -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
-Set-Location $BUILD
-Copy-Item "$ROOT/manifest.json" "manifest.json"
-$tmp = Join-Path $ROOT "wisp-wallet.zip"
-Compress-Archive -Path "$BUILD/*" -DestinationPath $tmp -Force
-Move-Item $tmp $OUT -Force
+Copy-Item "$ROOT/manifest.json" "$BUILD/manifest.json"
+# Pack with forward-slash entry names — the .mcpb/zip spec requires '/', not '\'
+# (Compress-Archive writes backslashes, which break unpacking on the .mcpb installer).
+Add-Type -AssemblyName System.IO.Compression.FileSystem | Out-Null
+$zip = [System.IO.Compression.ZipFile]::Open($OUT, 'Create')
+$base = (Resolve-Path $BUILD).Path.TrimEnd('\') + '\'
+Get-ChildItem -Path $BUILD -Recurse -File | ForEach-Object {
+  $rel = $_.FullName.Substring($base.Length).Replace('\', '/')
+  [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $rel, 'Optimal') | Out-Null
+}
+$zip.Dispose()
 
 Set-Location $ROOT
 Start-Sleep -Milliseconds 300

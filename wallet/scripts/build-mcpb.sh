@@ -16,7 +16,9 @@ sed -i.bak '1{/^#!/d;}' "$BUILD/server/index.js" && rm -f "$BUILD/server/index.j
 cp "$ROOT/package.json" "$BUILD/server/package.json"
 cd "$BUILD/server"
 npm install --omit=dev --ignore-scripts --legacy-peer-deps
-rm -f package.json package-lock.json
+rm -f package-lock.json
+# The bundled server is ESM — Node needs "type":"module" or it loads index.js as CommonJS.
+printf '{"type":"module"}' > package.json
 
 find node_modules -type f -name '*.map' -delete 2>/dev/null || true
 find node_modules -type d \( -name '__tests__' -o -name 'tests' -o -name 'docs' -o -name 'examples' \) -prune -exec rm -rf {} + 2>/dev/null || true
