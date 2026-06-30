@@ -1,5 +1,6 @@
 import type { Ctx } from '../context.js';
 import { getCsprBalanceMotes, getWcsprBalanceAtomic, atomicToDecimal } from '../casper.js';
+import { evmAddress, getUsdcBalanceAtomic } from '../evm.js';
 import { text } from './_util.js';
 
 export function registerCheckBalance(server: any, ctx: Ctx) {
@@ -13,17 +14,28 @@ export function registerCheckBalance(server: any, ctx: Ctx) {
         getCsprBalanceMotes(ctx.config, ctx.account),
         getWcsprBalanceAtomic(ctx.config, ctx.account),
       ]);
+      const base = ctx.config.base
+        ? {
+            address: evmAddress(ctx.config.base),
+            network: ctx.config.base.network,
+            usdc: atomicToDecimal(await getUsdcBalanceAtomic(ctx.config.base), 6),
+          }
+        : undefined;
+
       return text({
-        accountAddress: ctx.account.accountAddress,
-        publicKey: ctx.account.publicKeyHex,
-        network: ctx.config.network,
-        cspr: atomicToDecimal(csprMotes, 9),
-        token: {
-          symbol: ctx.config.asset.symbol,
-          balance: atomicToDecimal(wispAtomic, ctx.config.asset.decimals),
-          package: ctx.config.asset.package,
+        casper: {
+          accountAddress: ctx.account.accountAddress,
+          publicKey: ctx.account.publicKeyHex,
+          network: ctx.config.network,
+          cspr: atomicToDecimal(csprMotes, 9),
+          token: {
+            symbol: ctx.config.asset.symbol,
+            balance: atomicToDecimal(wispAtomic, ctx.config.asset.decimals),
+            package: ctx.config.asset.package,
+          },
+          explorer: `https://testnet.cspr.live/account/${ctx.account.publicKeyHex}`,
         },
-        explorer: `https://testnet.cspr.live/account/${ctx.account.publicKeyHex}`,
+        base,
       });
     },
   );

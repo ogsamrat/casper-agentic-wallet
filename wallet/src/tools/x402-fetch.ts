@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { Ctx } from '../context.js';
 import { x402Fetch } from '../x402.js';
 import { atomicToDecimal } from '../casper.js';
+import { networkAsset } from '../config.js';
 import { text, tryJson } from './_util.js';
 
 export function registerX402Fetch(server: any, ctx: Ctx) {
@@ -18,20 +19,28 @@ export function registerX402Fetch(server: any, ctx: Ctx) {
       try {
         const init: RequestInit = { method: method ?? 'GET', ...(body ? { body } : {}) };
         const r = await x402Fetch(ctx.account, url, init, (accept) => {
-          ctx.spending.check(atomicToDecimal(accept.amount, ctx.config.asset.decimals));
+          const na = networkAsset(accept.network, ctx.config);
+          ctx.spending.check(atomicToDecimal(accept.amount, na.decimals));
         });
 
         let payment: unknown;
         if (r.paid && r.accept) {
-          const dec = atomicToDecimal(r.accept.amount, ctx.config.asset.decimals);
+          const na = networkAsset(r.accept.network, ctx.config);
+          const dec = atomicToDecimal(r.accept.amount, na.decimals);
           const txHash = (r.settlement as { transaction?: string } | undefined)?.transaction;
           ctx.spending.record(dec, r.accept.payTo, url, txHash);
+          const isEvm = r.accept.network.startsWith('eip155');
           payment = {
             amount: dec,
-            asset: ctx.config.asset.symbol,
+            asset: na.symbol,
+            network: r.accept.network,
             payTo: r.accept.payTo,
             settlement: r.settlement,
-            explorer: txHash ? `https://testnet.cspr.live/deploy/${txHash}` : undefined,
+            explorer: txHash
+              ? isEvm
+                ? `https://sepolia.basescan.org/tx/${txHash}`
+                : `https://testnet.cspr.live/deploy/${txHash}`
+              : undefined,
           };
         }
         const bodyText = await r.response.text();
