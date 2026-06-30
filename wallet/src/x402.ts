@@ -1,6 +1,14 @@
 import { x402Client, x402HTTPClient } from '@x402/fetch';
 import { ExactCasperScheme } from '@make-software/casper-x402/exact/client';
+import { registerExactEvmScheme } from '@x402/evm/exact/client';
 import type { Account } from './casper.js';
+import { loadConfig } from './config.js';
+import { makeEvmSigner } from './evm.js';
+
+/** Networks the wallet can settle: Casper (WISP) and EVM/Base (USDC). */
+export function isSupportedNetwork(network: string): boolean {
+  return network.startsWith('casper:') || network.startsWith('eip155:');
+}
 
 export type PaymentAccept = {
   scheme: string;
@@ -20,7 +28,16 @@ export type PaymentRequired = {
 };
 
 export function makeHttpClient(account: Account) {
+  const cfg = loadConfig();
   const client = new x402Client().register('casper:*', new ExactCasperScheme(account.signer));
+  // Cross-chain: register the EVM exact scheme so the wallet can also pay Base USDC.
+  if (cfg.base) {
+    try {
+      registerExactEvmScheme(client, { signer: makeEvmSigner(cfg.base) });
+    } catch {
+      /* EVM signing optional — Casper still works */
+    }
+  }
   return new x402HTTPClient(client);
 }
 
@@ -67,7 +84,8 @@ export async function x402Fetch(
   if (!challenge.accepts?.length) throw new Error('402 had no payment options');
 
   const httpClient = makeHttpClient(account);
-  const accept = challenge.accepts[0];
+  // Pick the first option the wallet can actually settle (Casper or EVM/Base).
+  const accept = challenge.accepts.find((a) => isSupportedNetwork(a.network)) ?? challenge.accepts[0];
   if (onBeforePay) await onBeforePay(accept, challenge);
 
   const payload = await httpClient.createPaymentPayload(challenge as any);
