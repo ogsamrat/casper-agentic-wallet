@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { callService, type Service } from '../api';
+import { config } from '../config';
 
 function hostOf(u: string) {
   try { const x = new URL(u); return x.host + (x.pathname === '/' ? '' : x.pathname); } catch { return u; }
@@ -27,6 +28,7 @@ function ServiceCard({ s }: { s: Service }) {
   };
 
   const ok = result && result.status === 200 && result.paid;
+  const payable = config.supportedNetworks.includes(s.network);
 
   return (
     <div className="service">
@@ -38,7 +40,14 @@ function ServiceCard({ s }: { s: Service }) {
       <p>{s.description || 'x402-gated service.'}</p>
       <div className="service-foot">
         <code className="url">{hostOf(s.url)}</code>
-        <button className="pay" onClick={pay} disabled={busy}>{busy ? 'paying…' : 'Pay & call'}</button>
+        <button
+          className="pay"
+          onClick={pay}
+          disabled={busy || !payable}
+          title={payable ? 'Pay with the agent wallet' : 'This wallet isn’t funded on this network'}
+        >
+          {busy ? 'paying…' : payable ? 'Pay & call' : 'unfunded rail'}
+        </button>
       </div>
       {result && (
         <div className={`result ${ok ? 'ok' : 'err'}`}>
@@ -63,10 +72,7 @@ export function Bazaar({ services, loading }: { services: Service[]; loading?: b
   return (
     <section className="bazaar" id="bazaar">
       <div className="bazaar-head">
-        <div>
-          <h2>The bazaar <span className="count">{loading ? '…' : filtered.length}</span></h2>
-          <p className="sub">x402 services from Wisp and the Coinbase x402 Bazaar — pay any of them with one click.</p>
-        </div>
+        <span className="count-lbl">{loading ? 'loading…' : `${filtered.length} services`}</span>
         <div className="filters">
           <div className="seg">
             {(['all', 'casper', 'base'] as const).map((c) => (
