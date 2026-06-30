@@ -61,5 +61,7 @@ export async function fetchAndPay(treasury: Treasury, url: string, init: Request
   const sh = res2.headers.get('payment-response') ?? res2.headers.get('PAYMENT-RESPONSE') ?? res2.headers.get('x-payment-response');
   let settlement: unknown = null;
   if (sh) { try { settlement = JSON.parse(Buffer.from(sh, 'base64').toString('utf-8')); } catch { /* ignore */ } }
-  return { status: res2.status, paid: true, accept, response: res2, settlement };
+  // "paid" only when the retry actually succeeded (a re-402 means settlement failed,
+  // e.g. paying a service on a chain this wallet isn't funded on).
+  return { status: res2.status, paid: res2.status >= 200 && res2.status < 300, accept, response: res2, settlement };
 }

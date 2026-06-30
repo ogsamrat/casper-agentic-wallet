@@ -92,7 +92,8 @@ export async function x402Fetch(
   const headers = httpClient.encodePaymentSignatureHeader(payload as any) as Record<string, string>;
 
   const res2 = await fetch(url, { ...init, headers: { ...(init.headers as Record<string, string> ?? {}), ...headers } });
-  return { status: res2.status, paid: true, accept, response: res2, settlement: decodeSettlement(res2) };
+  const paid = res2.status >= 200 && res2.status < 300;
+  return { status: res2.status, paid, accept, response: res2, settlement: decodeSettlement(res2) };
 }
 
 /**
