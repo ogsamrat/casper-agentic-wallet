@@ -25,6 +25,7 @@ Wisp gives an AI agent a real Casper wallet and the ability to autonomously sett
 
 | Service | URL | Status |
 |---|---|---|
+| Wisp Web (dapp) | https://casperwallet.vercel.app | live |
 | Wisp API (seller) | https://casper-api.vercel.app | live |
 | Wisp Hub (backend) | https://casper-backend-one.vercel.app | live |
 | WISP token | CEP-18 `65bedddde009284db1bd62614afc8bbeb405590ddec1669eca3db38b5e18810f` | deployed |
