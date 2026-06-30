@@ -14,6 +14,18 @@ export type Service = {
   source?: string;
 };
 
+export type AgentInfo = {
+  casper?: { address: string; publicKey: string; cspr: string; token: { symbol: string; balance: string } };
+  base?: { address: string; network: string; usdc: string };
+};
+
+/** Live agent balances across chains (from the hub). */
+export async function getAgent(): Promise<AgentInfo> {
+  const res = await fetch(`${config.hubUrl}/agent`, { headers: { accept: 'application/json' } });
+  if (!res.ok) throw new Error(`hub ${res.status}`);
+  return res.json();
+}
+
 /** Pay & call an x402 service through the hub (agent's multi-chain keys). */
 export async function callService(url: string): Promise<any> {
   const res = await fetch(`${config.hubUrl}/call`, {
