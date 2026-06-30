@@ -17,6 +17,8 @@ export type HubConfig = {
   adminSecret: string;
   apiUrl: string;
   port: number;
+  baseFeePct: number;
+  cdpDiscoveryUrl: string;
 };
 
 export function loadHubConfig(): HubConfig {
@@ -37,5 +39,7 @@ export function loadHubConfig(): HubConfig {
     adminSecret: process.env.WISP_ADMIN_SECRET ?? '',
     apiUrl: process.env.WISP_API_URL ?? 'https://casper-api.vercel.app',
     port: Number(process.env.PORT ?? 4055),
+    baseFeePct: Number(process.env.BASE_BAZAAR_FEE_PCT ?? 5),
+    cdpDiscoveryUrl: process.env.CDP_DISCOVERY_URL ?? 'https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources',
   };
 }
