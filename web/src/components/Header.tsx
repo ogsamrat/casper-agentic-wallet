@@ -6,7 +6,7 @@ export function Header() {
   return (
     <header className="topbar">
       <div className="brand">
-        <span className="logo">◍</span> Wisp
+        <span className="logo" /> Wisp
         <span className="net">Casper Testnet</span>
       </div>
       <div className="actions">
