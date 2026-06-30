@@ -6,11 +6,16 @@ function hostOf(u: string) { try { return new URL(u).host; } catch { return u; }
 function txUrl(chain: string | undefined, tx: string) {
   return chain === 'base' ? `https://sepolia.basescan.org/tx/${tx}` : `https://testnet.cspr.live/deploy/${tx}`;
 }
+function titleCase(s: string) { return s.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()); }
 function displayName(s: Service): string {
-  if (s.chain === 'base') return hostOf(s.url).replace(/^www\./, '');
-  const segs = s.name.replace(/^\//, '').split('/').filter(Boolean);
+  let path = '';
+  try { path = new URL(s.url).pathname; } catch { path = s.name; }
+  const segs = path.split('/').filter(Boolean);
+  if (s.chain === 'base') {
+    return segs.length ? titleCase(segs[segs.length - 1]) : hostOf(s.url).replace(/^www\./, '');
+  }
   const t = segs.map((w) => w.replace(/-/g, ' ')).join(' · ');
-  return t ? t.replace(/\b\w/g, (c) => c.toUpperCase()) : s.name;
+  return t ? titleCase(t) : s.name;
 }
 function pageList(cur: number, total: number): (number | 'gap')[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
