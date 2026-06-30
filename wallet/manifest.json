@@ -1,0 +1,103 @@
+{
+  "manifest_version": "0.3",
+  "name": "wisp-wallet",
+  "display_name": "Wisp — Casper Wallet for AI Agents",
+  "version": "0.1.0",
+  "description": "Give Claude a Casper wallet. Pay x402-gated APIs in WISP, check balances, and transfer CSPR — no API keys, no accounts.",
+  "long_description": "Wisp gives an AI agent a real Casper wallet derived from your seed phrase, and the ability to autonomously pay x402-gated APIs. Tools:\n\n- **check_balance** — CSPR + WISP balances and your address\n- **x402_fetch** — fetch any URL, auto-paying x402 charges in WISP (EIP-712, gasless for you)\n- **pay** — sign an x402 payment authorization\n- **transfer_cspr** — send native CSPR\n- **transfer_token** — send the WISP token\n- **request_funding** — how to top up (fiat on-ramp + token)\n- **spending_report** — budget + payment history\n- **search_bazaar** — discover x402 services to pay for\n\nBudget limits (max per call / per day) protect your funds.",
+  "author": { "name": "Wisp", "url": "https://github.com/ogsamrat/casper-agentic-wallet" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/ogsamrat/casper-agentic-wallet" },
+  "homepage": "https://github.com/ogsamrat/casper-agentic-wallet",
+  "keywords": ["x402", "wallet", "casper", "cspr", "payments", "agent-commerce"],
+
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "WISP_MNEMONIC": "${user_config.mnemonic}",
+        "WISP_KEY_ALGO": "${user_config.key_algo}",
+        "WISP_ACCOUNT_INDEX": "0",
+        "CASPER_NETWORK": "${user_config.network}",
+        "CASPER_CHAIN_NAME": "casper-test",
+        "CASPER_NODE_URL": "https://node.testnet.cspr.cloud/rpc",
+        "CSPR_CLOUD_API_KEY": "${user_config.cspr_cloud_key}",
+        "CSPR_CLOUD_REST_URL": "https://api.testnet.cspr.cloud",
+        "X402_FACILITATOR_URL": "https://x402-facilitator.cspr.cloud",
+        "X402_FACILITATOR_API_KEY": "${user_config.cspr_cloud_key}",
+        "WISP_ASSET_PACKAGE": "65bedddde009284db1bd62614afc8bbeb405590ddec1669eca3db38b5e18810f",
+        "WISP_ASSET_NAME": "Wisp Dollar",
+        "WISP_ASSET_SYMBOL": "WISP",
+        "WISP_ASSET_VERSION": "1",
+        "WISP_ASSET_DECIMALS": "9",
+        "WISP_MAX_PER_CALL": "${user_config.max_per_call}",
+        "WISP_MAX_PER_DAY": "${user_config.max_per_day}",
+        "WISP_API_URL": "https://casper-api.vercel.app"
+      }
+    }
+  },
+
+  "user_config": {
+    "mnemonic": {
+      "type": "string",
+      "title": "Casper Seed Phrase (24 words)",
+      "description": "Your BIP39 mnemonic. Derives a secp256k1 Casper key (m/44'/506'/0'/0/0). Used to sign x402 payments. Stored in your OS keychain.",
+      "required": false,
+      "sensitive": true
+    },
+    "key_algo": {
+      "type": "string",
+      "title": "Key Algorithm",
+      "description": "Key derivation algorithm. Currently secp256k1.",
+      "required": false,
+      "default": "secp256k1"
+    },
+    "network": {
+      "type": "string",
+      "title": "Casper Network",
+      "description": "CAIP-2 network id: casper:casper-test (testnet) or casper:casper (mainnet).",
+      "required": false,
+      "default": "casper:casper-test"
+    },
+    "cspr_cloud_key": {
+      "type": "string",
+      "title": "CSPR.cloud Access Key",
+      "description": "CSPR.cloud access key — used for balance reads and to authorize the x402 facilitator. Get one at https://cspr.cloud.",
+      "required": false,
+      "sensitive": true
+    },
+    "max_per_call": {
+      "type": "string",
+      "title": "Max WISP per Payment",
+      "description": "Maximum WISP allowed per single x402 payment. Safety limit.",
+      "required": false,
+      "default": "0.10"
+    },
+    "max_per_day": {
+      "type": "string",
+      "title": "Max WISP per Day",
+      "description": "Maximum total WISP allowed per calendar day.",
+      "required": false,
+      "default": "20.00"
+    }
+  },
+
+  "tools": [
+    { "name": "check_balance", "description": "Check CSPR and WISP balances and the wallet address." },
+    { "name": "x402_fetch", "description": "Fetch a URL, auto-paying x402 charges in WISP on Casper." },
+    { "name": "pay", "description": "Sign an x402 payment authorization (EIP-712)." },
+    { "name": "transfer_cspr", "description": "Send native CSPR to a public key." },
+    { "name": "transfer_token", "description": "Send the WISP token to an account hash." },
+    { "name": "request_funding", "description": "Show how to fund the wallet (on-ramp + token)." },
+    { "name": "spending_report", "description": "Show budget usage and recent payments." },
+    { "name": "search_bazaar", "description": "Discover x402-gated services to pay for." }
+  ],
+
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": { "node": ">=20.0.0" }
+  }
+}
