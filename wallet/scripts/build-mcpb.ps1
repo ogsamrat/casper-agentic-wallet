@@ -9,7 +9,7 @@ if (Test-Path $OUT) { Remove-Item -Force $OUT }
 New-Item -ItemType Directory -Path "$BUILD/server" -Force | Out-Null
 
 Set-Location $ROOT
-& npm run build
+& npm.cmd run build
 
 $idx = Get-Content "$ROOT/dist/index.js" -Raw
 $idx = $idx -replace '^#!/usr/bin/env node\r?\n?', ''
@@ -17,7 +17,7 @@ Set-Content "$BUILD/server/index.js" -Value $idx -NoNewline -Encoding utf8
 
 Copy-Item "$ROOT/package.json" "$BUILD/server/package.json"
 Set-Location "$BUILD/server"
-& npm install --omit=dev --ignore-scripts --legacy-peer-deps
+& npm.cmd install --omit=dev --ignore-scripts --legacy-peer-deps
 Remove-Item "package.json","package-lock.json" -ErrorAction SilentlyContinue
 
 # Prune to shrink the archive
