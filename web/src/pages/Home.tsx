@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getBazaar } from '../api';
+import { WalletCard } from '../components/WalletCard';
 import { SettlementFeed } from '../components/SettlementFeed';
 import { Reveal } from '../components/Reveal';
 
@@ -27,7 +28,7 @@ export function Home() {
     <div className="container wide">
       <section className="hero">
         <div className="hero-copy">
-          <div className="overline" style={{ color: 'var(--accent)' }}>x402 · cross-chain payments</div>
+          <div className="overline">x402 · cross-chain payments</div>
           <h1 className="display">Your agent pays<br />the <em>open web</em>.</h1>
           <p className="hero-sub">One agent wallet, two testnets, {count ?? '…'} paid services — settled gasless over x402: WISP on Casper, USDC on Base.</p>
           <div className="hero-cta">
@@ -41,11 +42,16 @@ export function Home() {
             <span><b>$0</b> agent gas</span>
           </div>
         </div>
-        <div className="hero-feed"><SettlementFeed /></div>
+        <div className="hero-feed" style={{ display: 'flex', justifyContent: 'center' }}><WalletCard /></div>
       </section>
 
       <section className="section">
-        <Reveal><div className="kicker"><span className="idx">01</span> How it works</div><h2 className="section-h">Request, authorize, settle — one round-trip.</h2></Reveal>
+        <Reveal><div className="kicker"><span className="idx">01</span> Live settlements</div><h2 className="section-h">Real payments, the moment they clear.</h2></Reveal>
+        <Reveal delay={120}><div style={{ marginTop: 28, maxWidth: 660 }}><SettlementFeed /></div></Reveal>
+      </section>
+
+      <section className="section">
+        <Reveal><div className="kicker"><span className="idx">02</span> How it works</div><h2 className="section-h">Request, authorize, settle — one round-trip.</h2></Reveal>
         <div className="steps">
           {STEPS.map((s, i) => (
             <Reveal key={s.n} delay={100 + i * 100}>
@@ -56,7 +62,7 @@ export function Home() {
       </section>
 
       <section className="section">
-        <Reveal><div className="kicker"><span className="idx">02</span> Why Wisp</div><h2 className="section-h">Built for autonomous, cross-chain commerce.</h2></Reveal>
+        <Reveal><div className="kicker"><span className="idx">03</span> Why Wisp</div><h2 className="section-h">Built for autonomous, cross-chain commerce.</h2></Reveal>
         <div className="features">
           {FEATURES.map((f) => <div className="feature" key={f.t}><h3>{f.t}</h3><p>{f.d}</p></div>)}
         </div>
