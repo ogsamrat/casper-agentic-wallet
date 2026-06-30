@@ -1,10 +1,10 @@
 {
   "manifest_version": "0.3",
   "name": "wisp-wallet",
-  "display_name": "Wisp — Casper Wallet for AI Agents",
-  "version": "0.1.0",
-  "description": "Give Claude a Casper wallet. Pay x402-gated APIs in WISP, check balances, and transfer CSPR — no API keys, no accounts.",
-  "long_description": "Wisp gives an AI agent a real Casper wallet derived from your seed phrase, and the ability to autonomously pay x402-gated APIs. Tools:\n\n- **check_balance** — CSPR + WISP balances and your address\n- **x402_fetch** — fetch any URL, auto-paying x402 charges in WISP (EIP-712, gasless for you)\n- **pay** — sign an x402 payment authorization\n- **transfer_cspr** — send native CSPR\n- **transfer_token** — send the WISP token\n- **request_funding** — how to top up (fiat on-ramp + token)\n- **spending_report** — budget + payment history\n- **search_bazaar** — discover x402 services to pay for\n\nBudget limits (max per call / per day) protect your funds.",
+  "display_name": "Wisp — Cross-chain x402 Wallet for AI Agents",
+  "version": "0.2.0",
+  "description": "Give Claude a cross-chain wallet. Pay x402-gated APIs in WISP on Casper or USDC on Base — gasless, no accounts.",
+  "long_description": "Wisp gives an AI agent a real cross-chain wallet (Casper + Base) and the ability to autonomously pay x402-gated APIs — WISP on Casper, USDC on Base, picked automatically from the 402 response. Tools:\n\n- **check_balance** — CSPR, WISP, and Base USDC balances\n- **x402_fetch** — fetch any URL, auto-paying x402 (EIP-712 / EIP-3009, gasless for you)\n- **pay** — sign an x402 payment authorization\n- **transfer_cspr** / **transfer_token** — move CSPR / WISP on Casper\n- **request_funding** — how to top up (fiat on-ramp + tokens)\n- **spending_report** — budget + payment history\n- **search_bazaar** — discover x402 services across chains\n\nBudget limits (max per call / per day) protect your funds.",
   "author": { "name": "Wisp", "url": "https://github.com/ogsamrat/casper-agentic-wallet" },
   "license": "MIT",
   "repository": { "type": "git", "url": "https://github.com/ogsamrat/casper-agentic-wallet" },
@@ -35,7 +35,12 @@
         "WISP_ASSET_DECIMALS": "9",
         "WISP_MAX_PER_CALL": "${user_config.max_per_call}",
         "WISP_MAX_PER_DAY": "${user_config.max_per_day}",
-        "WISP_API_URL": "https://casper-api.vercel.app"
+        "WISP_API_URL": "https://casper-api.vercel.app",
+        "WISP_HUB_URL": "https://casper-backend-one.vercel.app",
+        "BASE_PRIVATE_KEY": "${user_config.base_private_key}",
+        "BASE_NETWORK": "eip155:84532",
+        "BASE_RPC_URL": "https://sepolia.base.org",
+        "BASE_USDC_CONTRACT": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
       }
     }
   },
@@ -66,6 +71,13 @@
       "type": "string",
       "title": "CSPR.cloud Access Key",
       "description": "CSPR.cloud access key — used for balance reads and to authorize the x402 facilitator. Get one at https://cspr.cloud.",
+      "required": false,
+      "sensitive": true
+    },
+    "base_private_key": {
+      "type": "string",
+      "title": "Base Wallet Private Key (optional)",
+      "description": "0x EVM private key for paying x402 services in USDC on Base Sepolia. Optional — Casper works without it. Stored in your OS keychain.",
       "required": false,
       "sensitive": true
     },
