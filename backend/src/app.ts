@@ -24,8 +24,9 @@ async function ensureSeeded() {
   if (seeded) return;
   seeded = true;
   const n = await bazaar.seedFromApi(cfg.apiUrl);
-  const m = await bazaar.seedFromBaseBazaar(cfg.baseFeePct, cfg.cdpDiscoveryUrl);
-  console.error(`[wisp-hub] bazaar seeded: ${n} Casper (Wisp API) + ${m} Base (CDP, ${cfg.baseFeePct}% fee)`);
+  const baseNetwork = cfg.base?.network ?? 'eip155:84532';
+  const m = await bazaar.seedFromBaseBazaar(cfg.baseFeePct, cfg.cdpDiscoveryUrl, baseNetwork);
+  console.error(`[wisp-hub] bazaar seeded: ${n} Casper (Wisp API) + ${m} Base ${baseNetwork} (${cfg.baseFeePct}% fee)`);
 }
 
 const app = new Hono();

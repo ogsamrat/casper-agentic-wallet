@@ -54,7 +54,7 @@ export class Bazaar {
    * Pull the Coinbase x402 Bazaar (CDP discovery) and register Base USDC services,
    * applying a marketplace fee. The agent can pay these via the wallet's EVM scheme.
    */
-  async seedFromBaseBazaar(feePct: number, discoveryUrl: string, limit = 50): Promise<number> {
+  async seedFromBaseBazaar(feePct: number, discoveryUrl: string, network: string, limit = 100): Promise<number> {
     try {
       const res = await fetch(`${discoveryUrl}?limit=${limit}`, {
         headers: { accept: 'application/json' },
@@ -66,7 +66,8 @@ export class Bazaar {
       let n = 0;
       for (const r of items) {
         const a = (r.accepts ?? [])[0];
-        if (!a || !String(a.network).startsWith('eip155')) continue;
+        // Only list services on the network this wallet is funded on (testnet).
+        if (!a || a.network !== network) continue;
         const url: string | undefined = r.resource ?? r.url;
         if (!url) continue;
         const price = Number(a.amount) / 1e6; // USDC, 6 dp
