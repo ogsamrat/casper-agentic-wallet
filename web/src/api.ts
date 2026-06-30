@@ -8,7 +8,21 @@ export type Service = {
   category: string;
   description: string;
   network: string;
+  chain?: 'casper' | 'base';
+  fee?: string;
+  total?: string;
+  source?: string;
 };
+
+/** Pay & call an x402 service through the hub (agent's multi-chain keys). */
+export async function callService(url: string): Promise<any> {
+  const res = await fetch(`${config.hubUrl}/call`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ url }),
+  });
+  return res.json();
+}
 
 /** Fetch the x402 bazaar from the Wisp Hub. */
 export async function getBazaar(query?: string): Promise<{ count: number; services: Service[] }> {
