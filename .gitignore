@@ -1,0 +1,24 @@
+# secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# deps / builds
+node_modules/
+dist/
+build/
+server/
+.mcpb-build/
+*.mcpb
+web/dist/
+
+# vercel
+.vercel/
+
+# logs / misc
+logs/
+*.log
+.DS_Store
+*.tsbuildinfo

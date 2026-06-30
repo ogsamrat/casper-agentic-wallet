@@ -1,0 +1,21 @@
+{
+  "name": "casper-agentic-wallet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wisp — an agentic wallet that lets AI agents discover and pay for x402-gated APIs on the Casper network.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogsamrat/casper-agentic-wallet"
+  },
+  "scripts": {
+    "install:all": "npm --prefix wallet install && npm --prefix seller install && npm --prefix backend install && npm --prefix web install",
+    "dev:seller": "npm --prefix seller run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:web": "npm --prefix web run dev",
+    "build:wallet": "npm --prefix wallet run build:mcpb"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
