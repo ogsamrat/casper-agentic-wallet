@@ -108,7 +108,7 @@ async function getWeather(city: string) {
     city: place.name, country: place.country ?? null, latitude: place.latitude, longitude: place.longitude,
     tempC: c.temperature_2m, feelsLikeC: c.apparent_temperature, humidityPct: c.relative_humidity_2m,
     windKph: c.wind_speed_10m, conditions: WMO[c.weather_code] ?? `WMO ${c.weather_code}`,
-    fetchedAt: new Date().toISOString(), source: 'Open-Meteo (live)', paidVia: `x402 / WCSPR ${NETWORK_LABEL}`,
+    fetchedAt: new Date().toISOString(), source: 'Open-Meteo (live)', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}`,
   };
 }
 
@@ -117,7 +117,7 @@ async function getFxRates(base: string, symbols?: string) {
   if (symbols) qs.set('symbols', symbols.toUpperCase());
   const d = await fetchJson<{ base: string; date: string; rates: Record<string, number> }>(`https://api.frankfurter.dev/v1/latest?${qs}`);
   return { base: d.base, date: d.date, rates: d.rates, rateCount: Object.keys(d.rates).length,
-    fetchedAt: new Date().toISOString(), source: 'Frankfurter / ECB (live)', paidVia: `x402 / WCSPR ${NETWORK_LABEL}` };
+    fetchedAt: new Date().toISOString(), source: 'Frankfurter / ECB (live)', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}` };
 }
 
 type CloudAccount = { data: { public_key: string; account_hash: string; balance: string; main_purse_uref: string } };
@@ -128,7 +128,7 @@ async function getCasperAccount(id: string) {
     accountHash: a.data.account_hash, publicKey: a.data.public_key,
     balanceMotes: motes.toString(), balanceCspr: (Number(motes) / 1e9).toString(),
     mainPurse: a.data.main_purse_uref, network: NETWORK_LABEL,
-    fetchedAt: new Date().toISOString(), source: 'CSPR.cloud (live)', paidVia: `x402 / WCSPR ${NETWORK_LABEL}`,
+    fetchedAt: new Date().toISOString(), source: 'CSPR.cloud (live)', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}`,
   };
 }
 
@@ -140,7 +140,7 @@ async function getCasperDeploy(hash: string) {
     deployHash: d.data.deploy_hash, status: d.data.status, errorMessage: d.data.error_message ?? null,
     blockHeight: d.data.block_height ?? null, cost: d.data.cost ?? null, caller: d.data.caller_public_key ?? null,
     timestamp: d.data.timestamp ?? null, network: NETWORK_LABEL,
-    fetchedAt: new Date().toISOString(), source: 'CSPR.cloud (live)', paidVia: `x402 / WCSPR ${NETWORK_LABEL}`,
+    fetchedAt: new Date().toISOString(), source: 'CSPR.cloud (live)', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}`,
   };
 }
 
@@ -151,7 +151,7 @@ function generateOtp(digitsRaw?: string, ttlRaw?: string) {
   for (let i = 0; i < digits; i++) otp += randomInt(0, 10).toString();
   return { otp, digits, expiresInSeconds: ttl, expiresAt: new Date(Date.now() + ttl * 1000).toISOString(),
     entropyBits: Math.round(digits * Math.log2(10)), algorithm: 'CSPRNG (node:crypto)',
-    fetchedAt: new Date().toISOString(), source: 'Generated server-side (live)', paidVia: `x402 / WCSPR ${NETWORK_LABEL}` };
+    fetchedAt: new Date().toISOString(), source: 'Generated server-side (live)', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}` };
 }
 
 function htmlDecode(s: string | null): string | null {
@@ -181,7 +181,7 @@ async function getCompanyMeta(domainRaw: string) {
   const siteName = htmlDecode(pick(/<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i));
   return { name: siteName ?? title ?? domain, domain, website: `https://${domain}`, title: title ?? null,
     description: description ?? null, finalUrl: res.url, fetchedAt: new Date().toISOString(),
-    source: 'Homepage metadata fetch (live)', paidVia: `x402 / WCSPR ${NETWORK_LABEL}` };
+    source: 'Homepage metadata fetch (live)', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}` };
 }
 
 // Simulated demo endpoints (deterministic; minute-seeded)
@@ -192,13 +192,13 @@ function mockAiComplete(prompt: string) {
   const tokens = Math.floor(seeded(seed) * 200 + 40);
   return { prompt, completion: `Wisp demo model response to: "${prompt.slice(0, 80)}". (This endpoint is a deterministic mock — wire a real model upstream in production.)`,
     model: 'wisp-demo-1', promptTokens: prompt.split(/\s+/).length, completionTokens: tokens,
-    fetchedAt: new Date().toISOString(), source: 'simulated', paidVia: `x402 / WCSPR ${NETWORK_LABEL}` };
+    fetchedAt: new Date().toISOString(), source: 'simulated', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}` };
 }
 function mockMarketQuote(symbol: string) {
   const seed = minuteSeed() + symbol.length;
   const price = Math.round((10 + seeded(seed) * 1000) * 100) / 100;
   return { symbol: symbol.toUpperCase(), price, change24hPct: Math.round((seeded(seed + 1) * 20 - 10) * 100) / 100,
-    fetchedAt: new Date().toISOString(), source: 'simulated', paidVia: `x402 / WCSPR ${NETWORK_LABEL}` };
+    fetchedAt: new Date().toISOString(), source: 'simulated', paidVia: `x402 / ${ASSET_SYMBOL} ${NETWORK_LABEL}` };
 }
 
 // ── Unified catalog ───────────────────────────────────────────────────────────
