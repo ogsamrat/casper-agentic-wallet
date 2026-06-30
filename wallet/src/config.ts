@@ -20,8 +20,24 @@ export type WalletConfig = {
   facilitatorKey: string;
   asset: { package: string; name: string; symbol: string; version: string; decimals: number };
   budget: { maxPerCall: string; maxPerDay: string };
+  base: BaseConfig | null;
   canPay: boolean;
 };
+
+export type BaseConfig = {
+  privateKey: string;
+  network: string;     // CAIP-2, e.g. eip155:84532
+  rpcUrl: string;
+  usdc: string;
+  facilitatorUrl: string;
+  feePct: number;      // marketplace fee on Base bazaar APIs
+};
+
+/** Decimals + display symbol for a payment network's asset. */
+export function networkAsset(network: string, cfg: WalletConfig): { symbol: string; decimals: number } {
+  if (network.startsWith('eip155')) return { symbol: 'USDC', decimals: 6 };
+  return { symbol: cfg.asset.symbol, decimals: cfg.asset.decimals };
+}
 
 export function loadConfig(): WalletConfig {
   const mnemonic = (process.env.WISP_MNEMONIC ?? '').trim();
@@ -47,6 +63,16 @@ export function loadConfig(): WalletConfig {
       maxPerCall: process.env.WISP_MAX_PER_CALL ?? '0.10',
       maxPerDay: process.env.WISP_MAX_PER_DAY ?? '20.00',
     },
+    base: process.env.BASE_PRIVATE_KEY
+      ? {
+          privateKey: process.env.BASE_PRIVATE_KEY,
+          network: process.env.BASE_NETWORK ?? 'eip155:84532',
+          rpcUrl: process.env.BASE_RPC_URL ?? 'https://sepolia.base.org',
+          usdc: process.env.BASE_USDC_CONTRACT ?? '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+          facilitatorUrl: process.env.BASE_FACILITATOR_URL ?? 'https://x402.org/facilitator',
+          feePct: Number(process.env.BASE_BAZAAR_FEE_PCT ?? 5),
+        }
+      : null,
     canPay: mnemonic.length > 0,
   };
 }
