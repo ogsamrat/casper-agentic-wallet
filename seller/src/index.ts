@@ -7,6 +7,7 @@ import cors from 'cors';
 import { paymentMiddleware, x402ResourceServer } from '@x402/express';
 import { HTTPFacilitatorClient, type FacilitatorConfig } from '@x402/core/server';
 import { ExactCasperScheme } from '@make-software/casper-x402/exact/server';
+import { ExactEvmScheme } from '@x402/evm/exact/server';
 import type { AssetAmount, Network, Price } from '@x402/core/types';
 
 // Load the shared repo-root .env first, then a local seller/.env override if present.
@@ -268,6 +269,46 @@ const routes = Object.fromEntries(
   ]),
 );
 
+// ── Base USDC routes (Base Sepolia) via the public x402.org facilitator ───────
+const BASE_PAYEE       = process.env.BASE_PAYEE ?? '0x24F11Cd6Fc1C7e063970d7Bc0c9b5Eec7141276a';
+const BASE_USDC        = process.env.BASE_USDC_CONTRACT ?? '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+const BASE_NETWORK     = (process.env.BASE_NETWORK ?? 'eip155:84532') as Network;
+const BASE_FACILITATOR = process.env.BASE_FACILITATOR_URL ?? 'https://x402.org/facilitator';
+
+function usdc(decimalAmount: string): Price {
+  const [whole = '0', fracRaw = ''] = decimalAmount.split('.');
+  const frac = fracRaw.padEnd(6, '0').slice(0, 6);
+  const atomic = (BigInt(whole) * 1_000_000n + BigInt(frac || '0')).toString();
+  return { asset: BASE_USDC, amount: atomic, extra: { name: 'USDC', version: '2' } } as AssetAmount;
+}
+
+type BaseEntry = { path: string; title: string; priceUsdc: string; category: string; description: string; handle: (req: Request) => unknown | Promise<unknown> };
+const BASE_CATALOG: BaseEntry[] = [
+  { path: '/base/weather', title: 'Current Weather (Base)', priceUsdc: '0.001', category: 'weather',
+    description: 'Live current weather for any city, paid in USDC on Base.',
+    handle: (r) => getWeather((r.query.city as string) ?? 'London') },
+  { path: '/base/fx', title: 'FX Rates (Base)', priceUsdc: '0.001', category: 'finance',
+    description: 'ECB reference FX rates, paid in USDC on Base.',
+    handle: (r) => getFxRates((r.query.base as string) ?? 'USD', r.query.symbols as string | undefined) },
+  { path: '/base/dice', title: 'Provably-random Dice (Base)', priceUsdc: '0.001', category: 'random',
+    description: 'A CSPRNG dice roll, paid in USDC on Base.',
+    handle: () => ({ roll: randomInt(1, 7), at: new Date().toISOString(), source: 'CSPRNG', paidVia: 'x402 / USDC Base Sepolia' }) },
+];
+
+const baseScheme = new ExactEvmScheme();
+const baseFacilitatorClient = new HTTPFacilitatorClient({ url: BASE_FACILITATOR });
+const baseResourceServer = new x402ResourceServer(baseFacilitatorClient).register(BASE_NETWORK, baseScheme);
+const baseRoutes = Object.fromEntries(
+  BASE_CATALOG.map((e) => [
+    `GET ${e.path}`,
+    {
+      accepts: [{ scheme: 'exact' as const, price: usdc(e.priceUsdc), network: BASE_NETWORK, payTo: BASE_PAYEE }],
+      description: `[Wisp API — ${e.title}] ${e.priceUsdc} USDC per call on Base Sepolia. ${e.description}`,
+      mimeType: 'application/json',
+    },
+  ]),
+);
+
 // ── App ──────────────────────────────────────────────────────────────────────
 
 const app = express();
@@ -280,6 +321,7 @@ app.use(cors({
 }));
 
 app.use(paymentMiddleware(routes, resourceServer));
+app.use(paymentMiddleware(baseRoutes, baseResourceServer));
 
 // Free endpoints
 app.get('/health', (_req: Request, res: Response) => {
@@ -288,6 +330,7 @@ app.get('/health', (_req: Request, res: Response) => {
     payTo: PAYEE_ADDRESS, asset: { symbol: ASSET_SYMBOL, package: ASSET_PACKAGE, decimals: ASSET_DECIMALS },
     facilitator: FACILITATOR_URL, protocol: `x402 (pay-per-call over HTTP, settled in ${ASSET_SYMBOL} on Casper)`,
     paidEndpoints: CATALOG.map((e) => `GET ${e.path}`),
+    base: { network: BASE_NETWORK, asset: 'USDC', usdc: BASE_USDC, facilitator: BASE_FACILITATOR, payTo: BASE_PAYEE, endpoints: BASE_CATALOG.map((e) => `GET ${e.path}`) },
   });
 });
 
@@ -308,12 +351,27 @@ app.get('/', (_req: Request, res: Response) => {
       category: e.category, dataSource: e.dataSource, upstream: e.upstream, description: e.description,
       params: e.params, returns: e.returns, exampleQuestion: e.exampleQuestion,
     })),
+    baseEndpoints: BASE_CATALOG.map((e) => ({
+      path: e.path, method: 'GET', price: `${e.priceUsdc} USDC`, network: BASE_NETWORK, payTo: BASE_PAYEE,
+      category: e.category, description: e.description,
+    })),
     freeEndpoints: [{ path: '/', method: 'GET' }, { path: '/health', method: 'GET' }],
   });
 });
 
 // Paid handlers (payment already verified + settled by the middleware)
 for (const e of CATALOG) {
+  app.get(e.path, async (req: Request, res: Response) => {
+    try {
+      res.json(await e.handle(req));
+    } catch (err) {
+      res.status(502).json({ error: `Upstream data fetch failed: ${err instanceof Error ? err.message : String(err)}`, endpoint: e.path });
+    }
+  });
+}
+
+// Base USDC paid handlers
+for (const e of BASE_CATALOG) {
   app.get(e.path, async (req: Request, res: Response) => {
     try {
       res.json(await e.handle(req));
